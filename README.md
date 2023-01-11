@@ -10,6 +10,7 @@ Open a command prompt: cmd
 navigate into the folder
 
 run: npm install
+
 run: node index.js
 
 Open the app.http file
