@@ -8,11 +8,12 @@ const express = require('express')
 const fs = require('fs')
 const path = require('path')
 const uuid = require('uuid')
+
+// use the no sql database
 const { Firestore } = require('@google-cloud/firestore')
+const firestore = new Firestore()
 
-const firestore = new Firestore();
-
-// start express app
+// start express app with the port from the environment or 3000 for local development
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -52,10 +53,6 @@ app.options('/addresult', (req, res, next) => {
 // formatting of the responses
 app.set('json spaces', 2)
 
-// data required on the server (currently used because there is no database)
-let teams = []
-let matches = []
-
 // 
 app.get('/', (req, res) => {
   res.send('<html><body><h1>ACS - Soccer Service</h1></body></html>')
@@ -66,17 +63,23 @@ app.get('/', (req, res) => {
  */
 
 // gets all teams
-app.get('/team', (req, res) => {
-  // todo load from database
+app.get('/team', async (req, res) => {
+  // connect to firestore and get all documents from the collection sample-teams
+  const snapshot = await firestore.collection('sample-teams').get()
+  // convert the docs to teams objects
+  const teams = snapshot.docs.map(doc => doc.data())
   res.json(teams)
 })
 
 
 // find a team with an ID
-app.get('/team/:id', (req, res) => {
+app.get('/team/:id', async (req, res) => {
   const requestId = req.params.id
-  console.log(`Looking for Team with id: ${requestId}`)
-  const result = teams.find(team => team.id === requestId)
+  // get the document reference with the requested id
+  const teamRef = firestore.collection('sample-teams').doc(requestId)
+  const doc = await teamRef.get()
+  // return the document data, if the doc exists, otherwise an empty object
+  const result = doc.exists ? doc.data() : {}
   res.json(result)
 })
 
@@ -84,100 +87,101 @@ app.get('/team/:id', (req, res) => {
 /**
  * match endpoints
  */
-app.get('/match', (req,res) => {
+app.get('/match', async (req,res) => {
+  // connect to firestore and get all documents from the collection sample-teams
+  const snapshot = await firestore.collection('sample-matches').get()
+  // convert the docs to teams objects
+  const matches = snapshot.docs.map(doc => doc.data())
   res.json(matches)
 })
 
 
 // find a match with an ID
-app.get('/match/:id', (req, res) => {
+app.get('/match/:id', async (req, res) => {
   const requestId = req.params.id
-  console.log(`Looking for Team with id: ${requestId}`)
-  const result = matches.find(match => match.id === requestId)
+  // get the document reference with the requested id
+  const matchRef = firestore.collection('sample-matches').doc(requestId)
+  const doc = await matchRef.get()
+  const result = doc.exists ? doc.data() : {}
   res.json(result)
 })
 
 // creates a new match
-app.post('/match', (req, res) => {
+app.post('/match', async (req, res) => {
   const newMatch = req.body
   // create a new id if not provided
-  newMatch.id = newMatch?.id ?? uuid.v4()
-  console.log(newMatch.id)
-  // TODO right solution: add to database
-  matches.push(newMatch)
-  res.send(newMatch)
+  const id = newMatch?.id ?? uuid.v4()
+  const collection = firestore.collection('sample-matches')
+  await collection.doc(id).set(newMatch)
+  res.send({status: 'OK', message: 'new match created'})
 })
 
 // updates a match with new values
-app.patch('/match/:id', (req, res) => {
+app.patch('/match/:id', async (req, res) => {
   const matchId = req.params.id
   const newValues = req.body
-  let match = matches.find(m => m.id === matchId)
-  match = {...match, ...newValues}
-  console.log(match.startDate)
-  res.send(match)
+  const collection = firestore.collection('sample-matches')
+  await collection.doc(matchId).update(newValues)
+  // send a status and message as result
+  res.send({status: 'OK', message: 'match data updated'})
 })
 
 // updates a match with new values
-app.put('/addresult/', (req, res) => {
+app.put('/addresult/', async (req, res) => {
   const result = req.body
-  let match = matches.find(m => m.id === result.id)
-  match.goals1 = result.goals1
-  match.goals2 = result.goals2
-  match.finished = true
-  res.send(match)
+  const collection = firestore.collection('sample-matches')
+  const match = await collection.doc(result.id).update({
+    goals1: result.goals1,
+    goals2: result.goals2,
+    finished: true
+  })
+  res.send({status: 'OK', message: 'result updated'})
 })
 
 // deletes a match with the id
-app.delete('/match/:id', (req, res) => {
-  const index = matches.findIndex(m => m.id === req.params.id)
-  if (index >-1) {
-    matches.splice(index,1)
-    res.send(`Removed: ${req.params.id}`)
-  }
-})
-
-// finds matches based on the team names and the start data by string matching
-app.get('/findmatches', (req, res) => {
-  const term = req.query.term
-  const results = matches.filter(match => {
-    if (match.startDate.toLowerCase().includes(term.toLowerCase())) return true
-    const name1 = teams.find(team => team.id = match.team1)
-    if (name1.toLowerCase().includes(term.toLowerCase())) return true
-    const name2 = teams.find(team => team.id = match.team2)
-    if (name2.toLowerCase().includes(term.toLowerCase())) return true
-    return false
-  })
-  res.send(results)
-})
-
-
-// finds teams based on the name (ignores upper and lower case)
-app.get('/findteams', (req, res) => {
-  const term = req.query.term
-  const results = teams.filter(team => team.name.toLowerCase().includes(term.toLowerCase()) )
-  res.send(results)
-})
-
-app.get('/firestore', async (req , res) => {
-  console.log('Testing fire store')
-  const snapshot = await firestore.collection('teams').get()
-  const teams = snapshot.docs.map(doc => doc.data())
-  console.log(teams)
-  res.send(teams)
-  
+app.delete('/match/:id', async (req, res) => {
+  const matchId = req.params.id
+  const collection = firestore.collection('sample-matches')
+  await collection.doc(matchId).delete()
+  res.send({status: 'OK', message: 'match deleted'})
 })
 
 /**
  * initializing app
  */
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Soccer app is starting at ${port}`)
-  loadTeams()
-  loadMatches() 
+  await initData()
   console.log('Soccer app running')
 })
 
+
+// initializes the data, so that we always have the same start set of data
+const initData = async () => {
+  console.log('Intializing Data')
+  // delete the existing data, so that we always have the same test data
+  const sampleteams = await firestore.collection('sample-teams').get()
+  const samplematches = await firestore.collection('sample-matches').get()
+	const batch = firestore.batch()
+  sampleteams.docs.forEach(doc => {
+    batch.delete(doc.ref)
+  })
+  samplematches.docs.forEach(doc => {
+    batch.delete(doc.ref)
+  })
+  await batch.commit()
+
+  // create the sample data again
+  const teams = loadTeams()
+  
+  for (const team of teams) {
+    await firestore.collection('sample-teams').doc(team.id).set(team)
+  }
+  const matches = loadMatches()
+  for (const match of matches) {
+    await firestore.collection('sample-matches').doc(match.id).set(match)
+  }
+}
 
 /**
  * helper functions (will be replaced by database in future) 
@@ -185,13 +189,11 @@ app.listen(port, () => {
 const loadTeams = () => {
   const filepath = path.join(__dirname, 'data', 'teams.json')
   const data = fs.readFileSync(filepath)
-  teams = JSON.parse(data)
-  console.log(`${teams.length} Teams loaded from ${filepath}`)
+  return teams = JSON.parse(data)
 }
 
 const loadMatches = () => {
   const filepath = path.join(__dirname, 'data', 'matches.json')
   const data = fs.readFileSync(filepath)
-  matches = JSON.parse(data)
-  console.log(`${matches.length} Matches loaded from ${filepath}`)
+  return matches = JSON.parse(data)
 }

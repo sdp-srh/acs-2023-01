@@ -16,16 +16,6 @@ functions.http('load-team-data', async (req, res) => {
   const collectionPath = `league/${league}/season/${season}/teams`
   const firestore = new Firestore()
   const collection = await firestore.collection(`league/${league}/season/${season}/teams`)
-  /*
-  const teams = olTeams.map(o => { 
-    return {
-      id: ''+o.TeamId,
-      name: o.TeamName,
-      shortName: o.ShortName,
-      icon: o.TeamIconUrl
-    }
-  })
-  */
   for (const team of teams) {
     await collection.doc(''+team.TeamId).set(team)
   }

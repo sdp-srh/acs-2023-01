@@ -1,9 +1,9 @@
 
 # gcloud server
-@server = https://acs-2023-01.ey.r.appspot.com/
+# @server = https://acs-2023-01.ey.r.appspot.com/
 
 # local server
-# @server = http://localhost:3000
+@server = http://localhost:3000
 
 # identifier for a new match
 @newmatchid = 2f648c72-45ac-4be0-a259-12340f3472f1
@@ -28,7 +28,7 @@ GET {{server}}/team/25ae03be-8b74-4443-9b3c-71737566c567
 ### read all matches
 GET {{server}}/match
 
-### read all match with id
+### read specific match by id
 GET {{server}}/match/{{newmatchid}}
 
 ### create a new match
