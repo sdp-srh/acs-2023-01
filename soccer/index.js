@@ -5,14 +5,16 @@
 
 // include libraries for microservices and file handling
 const express = require('express')
-
 const fs = require('fs')
 const path = require('path')
 const uuid = require('uuid')
+const { Firestore } = require('@google-cloud/firestore')
+
+const firestore = new Firestore();
 
 // start express app
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 
 // enable json parsing
 app.use(express.json())
@@ -48,7 +50,7 @@ app.options('/addresult', (req, res, next) => {
 })
 
 // formatting of the responses
-app.set('json spaces', 2);
+app.set('json spaces', 2)
 
 // data required on the server (currently used because there is no database)
 let teams = []
@@ -98,11 +100,11 @@ app.get('/match/:id', (req, res) => {
 // creates a new match
 app.post('/match', (req, res) => {
   const newMatch = req.body
-  // TODO validation
-  console.log("Before:"+matches.length)
+  // create a new id if not provided
+  newMatch.id = newMatch?.id ?? uuid.v4()
+  console.log(newMatch.id)
   // TODO right solution: add to database
   matches.push(newMatch)
-  console.log("After:"+matches.length)
   res.send(newMatch)
 })
 
@@ -155,6 +157,15 @@ app.get('/findteams', (req, res) => {
   const term = req.query.term
   const results = teams.filter(team => team.name.toLowerCase().includes(term.toLowerCase()) )
   res.send(results)
+})
+
+app.get('/firestore', async (req , res) => {
+  console.log('Testing fire store')
+  const snapshot = await firestore.collection('teams').get()
+  const teams = snapshot.docs.map(doc => doc.data())
+  console.log(teams)
+  res.send(teams)
+  
 })
 
 /**
