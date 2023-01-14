@@ -3,6 +3,9 @@
 
 
 ### test the app
+GET http://localhost:3000/
+
+### test the app
 GET {{server}}/
 
 ### read all teams
@@ -67,4 +70,4 @@ GET {{server}}/findmatches?term=eintracht
 
 
 ### find matchew with id
-GET {{server}}/findteams?term=frank
+GET {{server}}/findteams?term=FC

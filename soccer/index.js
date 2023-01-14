@@ -5,17 +5,18 @@
 
 // include libraries for microservices and file handling
 const express = require('express')
-const bodyParser = require('body-parser')
+
 const fs = require('fs')
 const path = require('path')
-
+const uuid = require('uuid')
 
 // start express app
 const app = express()
 const port = 3000
 
-// include body parser for easier handling of json in the request
-app.use(bodyParser.json())
+// enable json parsing
+app.use(express.json())
+
 
 // set the correct header information
 app.use((req, res, next) => {
@@ -55,7 +56,7 @@ let matches = []
 
 // 
 app.get('/', (req, res) => {
-  res.send('<html><body><h1>ACS - Soccer App</h1></body></html>')
+  res.send('<html><body><h1>ACS - Soccer Service</h1></body></html>')
 })
 
 /**
@@ -64,6 +65,7 @@ app.get('/', (req, res) => {
 
 // gets all teams
 app.get('/team', (req, res) => {
+  // todo load from database
   res.json(teams)
 })
 
@@ -85,7 +87,7 @@ app.get('/match', (req,res) => {
 })
 
 
-// find a team with an ID
+// find a match with an ID
 app.get('/match/:id', (req, res) => {
   const requestId = req.params.id
   console.log(`Looking for Team with id: ${requestId}`)
@@ -97,7 +99,10 @@ app.get('/match/:id', (req, res) => {
 app.post('/match', (req, res) => {
   const newMatch = req.body
   // TODO validation
+  console.log("Before:"+matches.length)
+  // TODO right solution: add to database
   matches.push(newMatch)
+  console.log("After:"+matches.length)
   res.send(newMatch)
 })
 
@@ -107,6 +112,7 @@ app.patch('/match/:id', (req, res) => {
   const newValues = req.body
   let match = matches.find(m => m.id === matchId)
   match = {...match, ...newValues}
+  console.log(match.startDate)
   res.send(match)
 })
 
