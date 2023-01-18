@@ -55,7 +55,7 @@ app.set('json spaces', 2)
 
 // 
 app.get('/', (req, res) => {
-  res.send('<html><body><h1>ACS - Soccer Service</h1></body></html>')
+  res.send('<html><body><h1>ACS - Soccer Service</h1><p>is running on Google Cloud Platform</p></body></html>')
 })
 
 /**
@@ -111,6 +111,7 @@ app.post('/match', async (req, res) => {
   const newMatch = req.body
   // create a new id if not provided
   const id = newMatch?.id ?? uuid.v4()
+  // const id = newMatch.hasOwnProperty('id') ? newMatch.id : uuid.v4() 
   const collection = firestore.collection('sample-matches')
   await collection.doc(id).set(newMatch)
   res.send({status: 'OK', message: 'new match created'})
