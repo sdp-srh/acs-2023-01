@@ -1,0 +1,41 @@
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Text-to-Speech</title>
+  </head>
+  <body>
+    <h1>Text-to-Speech</h1>
+    <!--
+    <form>
+      <label for="text">Enter text:</label>
+      <input type="text" id="text" name="text">
+      <button type="button" onclick="generateAudio()">Generate audio</button>
+    </form>
+    -->
+    <br>
+    <audio id="audio" src="/tts/match/30def128-0089-4272-96f3-e80f5e3c6379" controls autoplay>
+
+    </audio>
+
+    <script>
+      async function generateAudio() {
+        // Get the text from the input field
+        const text = document.querySelector('#text').value;
+
+        // Make a GET request to the Express TTS route
+        const response = await fetch(`/tts/match/30def128-0089-4272-96f3-e80f5e3c6379`);
+        const blob = await response.blob();
+        console.log(blob)
+        // Create a new Blob from the audio data and set it as the source of the audio element
+        // const blob = new Blob([audio], {type: 'audio/mp3'});
+        const url = URL.createObjectURL(blob);
+        const audioEl = document.querySelector('#audio');
+        audioEl.src = url;
+        audioEl.play();
+      }
+    </script>
+  
+  </body>
+</html>

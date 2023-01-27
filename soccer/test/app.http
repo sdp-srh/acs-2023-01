@@ -31,6 +31,12 @@ GET {{server}}/match
 ### read specific match by id
 GET {{server}}/match/{{newmatchid}}
 
+### read specific match wit a result
+GET {{server}}/match/30def128-0089-4272-96f3-e80f5e3c6379
+
+### read specific match without a result
+GET {{server}}/match/3858c2d0-eba3-4cab-822b-722c123b2fe4
+
 ### create a new match
 POST {{server}}/match
 Content-Type: application/json
@@ -45,6 +51,8 @@ Content-Type: application/json
     "goals1": -1,
     "goals2": -1
   }
+
+
 
 ### UPDATE match with a new data
 PATCH {{server}}/match/{{newmatchid}}
@@ -71,17 +79,9 @@ DELETE {{server}}/match/{{newmatchid}}
 ### options of match endpoint
 OPTIONS {{server}}/match/
 
+### read specific match wit a result
+GET {{server}}/tts/match/30def128-0089-4272-96f3-e80f5e3c6379
 
-### find matches
-GET {{server}}/findmatches?term=FC
+### read specific match without a result
+GET {{server}}/tts/match/3858c2d0-eba3-4cab-822b-722c123b2fe4
 
-
-### find matchew with id
-GET {{server}}/findmatches?term=eintracht
-
-
-### find matchew with id
-GET {{server}}/findteams?term=FC
-
-### find matchew with id
-GET {{server}}/firestore

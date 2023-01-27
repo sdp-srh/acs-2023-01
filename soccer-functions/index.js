@@ -17,6 +17,7 @@ functions.http('load-team-data', async (req, res) => {
   const firestore = new Firestore()
   const collection = await firestore.collection(`league/${league}/season/${season}/teams`)
   for (const team of teams) {
+    console.log(team)
     await collection.doc(''+team.TeamId).set(team)
   }
   const message = `Added/Changed ${teams.length} Teams in Collection ${collectionPath} `

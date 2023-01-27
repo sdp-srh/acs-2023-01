@@ -13,6 +13,10 @@ const uuid = require('uuid')
 const { Firestore } = require('@google-cloud/firestore')
 const firestore = new Firestore()
 
+// import the TextToSpeechClientService from GCP
+// const {TextToSpeechClient} = require('@google-cloud/text-to-speech');
+
+
 // start express app with the port from the environment or 3000 for local development
 const app = express()
 const port = process.env.PORT || 3000
@@ -20,6 +24,8 @@ const port = process.env.PORT || 3000
 // enable json parsing
 app.use(express.json())
 
+// enable static html pages in the folder public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // set the correct header information
 app.use((req, res, next) => {
@@ -67,6 +73,8 @@ app.get('/team', async (req, res) => {
   // connect to firestore and get all documents from the collection sample-teams
   const snapshot = await firestore.collection('sample-teams').get()
   // convert the docs to teams objects
+  const allDocsFromDb = snapshot.docs
+  console.log(allDocsFromDb[0].data())
   const teams = snapshot.docs.map(doc => doc.data())
   res.json(teams)
 })
@@ -80,6 +88,7 @@ app.get('/team/:id', async (req, res) => {
   const doc = await teamRef.get()
   // return the document data, if the doc exists, otherwise an empty object
   const result = doc.exists ? doc.data() : {}
+  console.log(result)
   res.json(result)
 })
 
@@ -147,6 +156,26 @@ app.delete('/match/:id', async (req, res) => {
   res.send({status: 'OK', message: 'match deleted'})
 })
 
+// converts the result of a match to an mp3 file
+// mp3 can be used to read the result on the web site
+app.get('/tts/match/:id', async (req, res) => {
+  res.send({status:'Failure', message: 'Not Supported'})
+  return
+  // currently not supported
+  const matchId = req.params.id
+  const audio = await ttsForMatch(matchId)
+  if (audio) {
+    res.set('Content-Type', 'audio/mp3');
+    res.send({ message: audio })
+  }
+  else {
+    res.send({ status: 'Failed', message: 'Match not found' })
+  }  
+})
+
+
+
+
 /**
  * initializing app
  */
@@ -197,4 +226,68 @@ const loadMatches = () => {
   const filepath = path.join(__dirname, 'data', 'matches.json')
   const data = fs.readFileSync(filepath)
   return matches = JSON.parse(data)
+}
+
+const ttsForMatch = async (id) => {
+  console.log(`getting mp3 for match with ${id}`)
+  const text = await getTextForMatch(id)
+  const audio = await generateAudio(text)
+  console.log(text)
+  return audio
+}
+
+const getTextForMatch = async (id) => {
+  // read the match
+  const doc = await firestore.collection('sample-matches').doc(id).get()
+  const match = doc.exists ? doc.data() : {}  
+  if (!match) {
+    console.log('match not found')
+    return null
+  }
+  console.log(match.team1)
+  const name1 = await readTeamName(match.team1)
+  const name2 = await readTeamName(match.team2)
+
+  let text = ''
+  if (match.finished) {
+    text = `${name1} played ${match.goals1} to ${match.goals2} against ${name2}`
+  }
+  else {
+    const options = {  month: 'long', day: 'numeric' }
+    const d = new Date(match.startDate)
+    const dateText = d.toLocaleDateString('en-US', options)
+
+    text = `The match between ${name1} and ${name2} will start at ${dateText}`
+  }
+  return text
+}
+
+const generateAudio = async (text) => {
+  // Creates a client
+  const client = new TextToSpeechClient()
+
+  // Construct the request
+  const request = {
+    input: {text: text},
+    // Select the language and SSML voice gender (optional)
+    voice: {languageCode: 'en-US', ssmlGender: 'NEUTRAL'},
+    // select the type of audio encoding
+    audioConfig: {audioEncoding: 'MP3'},
+  }
+
+  // Performs the text-to-speech request
+  const [response] = await client.synthesizeSpeech(request)
+  // Get the audio content from the response
+  const audioContent = response.audioContent
+
+  return audioContent
+}
+
+
+const readTeamName =  async (teamId) => {
+  const teamRef = firestore.collection('sample-teams').doc(teamId)
+  const doc = await teamRef.get()
+  // return the document data, if the doc exists, otherwise an empty object
+  const result = doc.exists ? doc.data().name : ''
+  return result
 }
