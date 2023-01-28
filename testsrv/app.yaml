@@ -12,8 +12,7 @@
 # limitations under the License.
 
 
-service: testing
-
+service: examples
 
 # [START app_yaml]
 runtime: nodejs16

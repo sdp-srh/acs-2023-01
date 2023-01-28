@@ -1,0 +1,25 @@
+# local server
+@server = http://localhost:3000
+# productive instance
+# @server = https://examples-dot-acs-2023-01.ey.r.appspot.com/
+
+### translate to english
+POST {{server}}/de2en
+Content-Type: application/json
+
+  {
+    "source": "Willkommen. Dies ist ein deutscher Text zum Testen der Übersetzung"
+  }
+
+
+### translate to german
+POST {{server}}/en2de
+Content-Type: application/json
+
+  {
+    "source": "Good afternoon. This text will be translated to German."
+  }
+
+
+### get news for Boston
+GET {{server}}/google-trends
