@@ -1,13 +1,13 @@
 
+// runs on:  https://examples-dot-acs-2023-01.ey.r.appspot.com
+
+
 const express = require('express')
 const path = require('path')
 
 const {Translate} = require('@google-cloud/translate').v2
 
 const { BigQuery } = require('@google-cloud/bigquery');
-
-
-
 
 // start express app with the port from the environment or 3000 for local development
 const app = express()
@@ -19,8 +19,21 @@ app.use(express.json())
 // enable express to act as webserver for files in folder "public"
 app.use(express.static(path.join(__dirname, 'public')))
 
+// default html page
 app.get('/', async (req, res) => {
-  res.send('<h1>Welcome to our service</h1><h2>here we provide some examples</h2>')
+  const htmlText = `
+    <html>
+      <head>
+        <title>ACS - Examples</title>
+      </head>
+      <body>
+        <h1>ACS - Examples</h1>
+        <p><a href="./translation.html">Translation</a></p>
+        <p><a href="./trends.html">Google Search Trends</a></p>
+      </body>
+    </html>
+  `
+  res.send(htmlText)
 })
 
 // translation post endpoint for german to english
