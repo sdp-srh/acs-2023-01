@@ -1,7 +1,4 @@
 
-// runs on:  https://examples-dot-acs-2023-01.ey.r.appspot.com
-
-
 const express = require('express')
 const path = require('path')
 
