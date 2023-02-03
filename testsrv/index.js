@@ -6,6 +6,9 @@ const {Translate} = require('@google-cloud/translate').v2
 
 const { BigQuery } = require('@google-cloud/bigquery');
 
+
+
+
 // start express app with the port from the environment or 3000 for local development
 const app = express()
 const port = process.env.PORT || 3000
@@ -14,27 +17,19 @@ const port = process.env.PORT || 3000
 app.use(express.json())
 
 // enable express to act as webserver for files in folder "public"
-app.use(express.static(path.join(__dirname, 'public')))
+// app.use(express.static(path.join(__dirname, 'public')))
 
-// default html page
-app.get('/', async (req, res) => {
-  const htmlText = `
-    <html>
-      <head>
-        <title>ACS - Examples</title>
-      </head>
-      <body>
-        <h1>ACS - Examples</h1>
-        <p><a href="./translation.html">Translation</a></p>
-        <p><a href="./trends.html">Google Search Trends</a></p>
-      </body>
-    </html>
-  `
-  res.send(htmlText)
+// configre express that it loads the data from the vue project folder (dist)
+app.use(express.static(path.join(__dirname, './vue-app/dist')));
+
+
+
+app.get('/api/info', async (req, res) => {
+  res.send('<h1>Welcome to our service</h1><h2>here we provide some examples</h2>')
 })
 
 // translation post endpoint for german to english
-app.post('/de2en', async (req, res) => {
+app.post('/api/de2en', async (req, res) => {
   const source = req.body.source
   const translate = new Translate()
   const options = {from: 'de', to: 'en'}
@@ -44,7 +39,7 @@ app.post('/de2en', async (req, res) => {
 
 
 //  translation post endpoint for english to german
-app.post('/en2de', async (req, res) => {
+app.post('/api/en2de', async (req, res) => {
   const source = req.body.source
   const translate = new Translate()
   const options = {from: 'en', to: 'de'}
@@ -53,9 +48,18 @@ app.post('/en2de', async (req, res) => {
 })
 
 // big data query endpoint
-app.get('/google-trends', async (req, res) => {
+app.get('/api/google-trends', async (req, res) => {
   const trends = await readTrends()
   res.send({ amount: trends.length, results: trends})
+  /*
+  
+  // for testing to avoid many queries
+  const trendsStr = `
+  {"amount":7,"results":[{"Day":{"value":"2023-01-28"},"Top_Term":"Man City vs Arsenal","rank":1},{"Day":{"value":"2023-01-27"},"Top_Term":"Memphis Police","rank":1},{"Day":{"value":"2023-01-26"},"Top_Term":"Warriors","rank":1},{"Day":{"value":"2023-01-25"},"Top_Term":"Justin Roiland","rank":1},{"Day":{"value":"2023-01-24"},"Top_Term":"Oscar nominations 2023","rank":1},{"Day":{"value":"2023-01-23"},"Top_Term":"UFC","rank":1},{"Day":{"value":"2023-01-22"},"Top_Term":"Lunar New Year","rank":1}]}
+  `
+  const trendsObj = JSON.parse(trendsStr)
+  res.send(trendsObj)
+  */
 })
 
 
