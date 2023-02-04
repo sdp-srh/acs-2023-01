@@ -35,21 +35,21 @@ app.use((req, res, next) => {
 })
 
 // options for the different endpoints
-app.options('/match', (req, res, next) => {
+app.options('/api/match', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS')
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With')
   res.sendStatus(200)
 })
 
-app.options('/team', (req, res, next) => {
+app.options('/api/team', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Methods', 'GET,OPTIONS')
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With')
   res.sendStatus(200)
 })
 
-app.options('/addresult', (req, res, next) => {
+app.options('/api/addresult', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Methods', 'PUT')
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With')
@@ -60,7 +60,7 @@ app.options('/addresult', (req, res, next) => {
 app.set('json spaces', 2)
 
 // 
-app.get('/', (req, res) => {
+app.get('/api/', (req, res) => {
   res.send('<html><body><h1>ACS - Soccer Service</h1><p>is running on Google Cloud Platform</p></body></html>')
 })
 
@@ -69,7 +69,7 @@ app.get('/', (req, res) => {
  */
 
 // gets all teams
-app.get('/team', async (req, res) => {
+app.get('/api/team', async (req, res) => {
   // connect to firestore and get all documents from the collection sample-teams
   const snapshot = await firestore.collection('sample-teams').get()
   // convert the docs to teams objects
@@ -81,7 +81,7 @@ app.get('/team', async (req, res) => {
 
 
 // find a team with an ID
-app.get('/team/:id', async (req, res) => {
+app.get('/api/team/:id', async (req, res) => {
   const requestId = req.params.id
   // get the document reference with the requested id
   const teamRef = firestore.collection('sample-teams').doc(requestId)
@@ -96,7 +96,7 @@ app.get('/team/:id', async (req, res) => {
 /**
  * match endpoints
  */
-app.get('/match', async (req,res) => {
+app.get('/api/match', async (req,res) => {
   // connect to firestore and get all documents from the collection sample-teams
   const snapshot = await firestore.collection('sample-matches').get()
   // convert the docs to teams objects
@@ -106,7 +106,7 @@ app.get('/match', async (req,res) => {
 
 
 // find a match with an ID
-app.get('/match/:id', async (req, res) => {
+app.get('/api/match/:id', async (req, res) => {
   const requestId = req.params.id
   // get the document reference with the requested id
   const matchRef = firestore.collection('sample-matches').doc(requestId)
@@ -116,7 +116,7 @@ app.get('/match/:id', async (req, res) => {
 })
 
 // creates a new match
-app.post('/match', async (req, res) => {
+app.post('/api/match', async (req, res) => {
   const newMatch = req.body
   // create a new id if not provided
   const id = newMatch?.id ?? uuid.v4()
@@ -127,7 +127,7 @@ app.post('/match', async (req, res) => {
 })
 
 // updates a match with new values
-app.patch('/match/:id', async (req, res) => {
+app.patch('/api/match/:id', async (req, res) => {
   const matchId = req.params.id
   const newValues = req.body
   const collection = firestore.collection('sample-matches')
@@ -137,7 +137,7 @@ app.patch('/match/:id', async (req, res) => {
 })
 
 // updates a match with new values
-app.put('/addresult/', async (req, res) => {
+app.put('/api/addresult/', async (req, res) => {
   const result = req.body
   const collection = firestore.collection('sample-matches')
   const match = await collection.doc(result.id).update({
@@ -149,31 +149,12 @@ app.put('/addresult/', async (req, res) => {
 })
 
 // deletes a match with the id
-app.delete('/match/:id', async (req, res) => {
+app.delete('/api/match/:id', async (req, res) => {
   const matchId = req.params.id
   const collection = firestore.collection('sample-matches')
   await collection.doc(matchId).delete()
   res.send({status: 'OK', message: 'match deleted'})
 })
-
-// converts the result of a match to an mp3 file
-// mp3 can be used to read the result on the web site
-app.get('/tts/match/:id', async (req, res) => {
-  res.send({status:'Failure', message: 'Not Supported'})
-  return
-  // currently not supported
-  const matchId = req.params.id
-  const audio = await ttsForMatch(matchId)
-  if (audio) {
-    res.set('Content-Type', 'audio/mp3');
-    res.send({ message: audio })
-  }
-  else {
-    res.send({ status: 'Failed', message: 'Match not found' })
-  }  
-})
-
-
 
 
 /**
@@ -262,32 +243,3 @@ const getTextForMatch = async (id) => {
   return text
 }
 
-const generateAudio = async (text) => {
-  // Creates a client
-  const client = new TextToSpeechClient()
-
-  // Construct the request
-  const request = {
-    input: {text: text},
-    // Select the language and SSML voice gender (optional)
-    voice: {languageCode: 'en-US', ssmlGender: 'NEUTRAL'},
-    // select the type of audio encoding
-    audioConfig: {audioEncoding: 'MP3'},
-  }
-
-  // Performs the text-to-speech request
-  const [response] = await client.synthesizeSpeech(request)
-  // Get the audio content from the response
-  const audioContent = response.audioContent
-
-  return audioContent
-}
-
-
-const readTeamName =  async (teamId) => {
-  const teamRef = firestore.collection('sample-teams').doc(teamId)
-  const doc = await teamRef.get()
-  // return the document data, if the doc exists, otherwise an empty object
-  const result = doc.exists ? doc.data().name : ''
-  return result
-}

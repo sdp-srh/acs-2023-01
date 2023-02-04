@@ -6,6 +6,8 @@ This repository will contain the microservice including a UI for Google Cloud Pl
 contains the express soccer app
 several endpoints with different http methods
 includes the access to google firestore
+contains a vue dashboard app based on vue paper dashboard
+
 
 ### soccer functions
 contains Google Cloud Functions for reading data from an external web services
@@ -15,6 +17,7 @@ saves the data to firestore
 contains some test services
 translation service with an html page, that uses google translate
 google-trends service that uses big query to read the last trends from google
+contains a basic vue app
 
 
 ## Installation

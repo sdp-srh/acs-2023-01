@@ -9,7 +9,6 @@ const readTrends = async () =>{
   const response = await fetch('/google-trends')
   const trends = await response.json()  
   let html = ''
-  console.log(trends)
   trends.results.forEach(trend => {
     html += `<p><b>${trend.Top_Term}</b> (${trend.Day.value})</p>`
   })
