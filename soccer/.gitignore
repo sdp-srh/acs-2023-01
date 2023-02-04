@@ -1,1 +1,8 @@
 node_modules
+ui/.DS_Store
+ui/node_modules/
+ui/yarn.lock
+ui/package-lock.json
+ui/npm-debug.log
+ui/.idea/
+ui/dist/
