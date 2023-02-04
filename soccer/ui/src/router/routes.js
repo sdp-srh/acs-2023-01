@@ -10,6 +10,8 @@ import Icons from "@/pages/Icons.vue";
 import Maps from "@/pages/Maps.vue";
 import Typography from "@/pages/Typography.vue";
 import TableList from "@/pages/TableList.vue";
+import GamesList from "@/pages/GamesList.vue";
+import TeamsOverview from "@/pages/TeamsOverview.vue";
 
 const routes = [
   {
@@ -52,6 +54,16 @@ const routes = [
         name: "table-list",
         component: TableList,
       },
+      {
+        path: "games-list",
+        name: "games-list",
+        component: GamesList,
+      },
+      {
+        path: "teams-overview",
+        name: "teams-overview",
+        component: TeamsOverview,
+      }
     ],
   },
   { path: "*", component: NotFound },

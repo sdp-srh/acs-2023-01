@@ -9,6 +9,16 @@
           name="Table List"
           icon="ti-view-list-alt"
         />
+        <sidebar-link
+          to="/games-list"
+          name="Games"
+          icon="ti-basketball"
+        />
+        <sidebar-link
+          to="/teams-overview"
+          name="Teams"
+          icon="ti-pin"
+        />        
         <sidebar-link to="/typography" name="Typography" icon="ti-text" />
         <sidebar-link to="/icons" name="Icons" icon="ti-pencil-alt2" />
         <sidebar-link to="/maps" name="Map" icon="ti-map" />

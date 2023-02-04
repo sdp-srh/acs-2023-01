@@ -25,7 +25,8 @@ const port = process.env.PORT || 3000
 app.use(express.json())
 
 // enable static html pages in the folder public
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, './ui/dist')));
 
 // set the correct header information
 app.use((req, res, next) => {
@@ -74,7 +75,6 @@ app.get('/api/team', async (req, res) => {
   const snapshot = await firestore.collection('sample-teams').get()
   // convert the docs to teams objects
   const allDocsFromDb = snapshot.docs
-  console.log(allDocsFromDb[0].data())
   const teams = snapshot.docs.map(doc => doc.data())
   res.json(teams)
 })
@@ -88,7 +88,6 @@ app.get('/api/team/:id', async (req, res) => {
   const doc = await teamRef.get()
   // return the document data, if the doc exists, otherwise an empty object
   const result = doc.exists ? doc.data() : {}
-  console.log(result)
   res.json(result)
 })
 

@@ -21,4 +21,3 @@ ui/yarn.lock
 ui/package-lock.json
 ui/npm-debug.log
 ui/.idea/
-ui/dist/
